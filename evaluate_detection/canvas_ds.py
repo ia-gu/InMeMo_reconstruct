@@ -39,22 +39,24 @@ def get_annotated_image(img, boxes, border_width=3, mode='draw', bgcolor='white'
 
 class CanvasDataset4Val(data.Dataset):
     def __init__(self, pascal_path='pascal-5i', years=("2012",), random=False, **kwargs):
-        self.train_ds = VOCDetection4Val(pascal_path, years, image_sets=['train'], transforms=None,
-                                         keep_single_objs_only=1, filter_by_mask_size=1)
-        self.val_ds = VOCDetection4Val(pascal_path, years, image_sets=['val'], transforms=None,
-                                       keep_single_objs_only=1, filter_by_mask_size=1)
+        self.train_ds = VOCDetection4Val(pascal_path, years, image_sets=['train'], transforms=None)
+        self.val_ds = VOCDetection4Val(pascal_path, years, image_sets=['val'], transforms=None)
         self.background_transforms = T.Compose([
             T.Resize((224, 224)),
             T.Compose([
                 T.ToTensor(),
-                T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                T.Normalize([0.6264, 0.5928, 0.5616], [0.2011, 0.2027, 0.2063])
+                # T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             ])
         ])
         self.transforms = make_transforms('val')
         self.random = random
 
     def __len__(self):
-        return len(self.val_ds)
+        if len(self.val_ds) < len(self.train_ds):
+            return len(self.val_ds)
+        else:
+            return len(self.train_ds)
 
     def __getitem__(self, idx):
 
@@ -100,13 +102,14 @@ class CanvasDataset4Val(data.Dataset):
 
 class CanvasDataset4Train(data.Dataset):
     def __init__(self, pascal_path='pascal-5i', years=("2012",), random=False, **kwargs):
-        self.train_ds = VOCDetection4Train(pascal_path, years, image_sets=['train'], transforms=None, keep_single_objs_only=1, filter_by_mask_size=1)
-        self.val_ds = VOCDetection4Train(pascal_path, years, image_sets=['val'], transforms=None, keep_single_objs_only=1, filter_by_mask_size=1)
+        self.train_ds = VOCDetection4Train(pascal_path, years, image_sets=['train'], transforms=None)
+        self.val_ds = VOCDetection4Train(pascal_path, years, image_sets=['val'], transforms=None)
         self.background_transforms = T.Compose([
             T.Resize((224, 224)),
             T.Compose([
                 T.ToTensor(),
-                T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                T.Normalize([0.6264, 0.5928, 0.5616], [0.2011, 0.2027, 0.2063])
+                # T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             ])
         ])
         self.transforms = make_transforms('val')
@@ -120,9 +123,26 @@ class CanvasDataset4Train(data.Dataset):
         grid_stack = torch.tensor([]).cuda()
 
         query_image, query_target = self.val_ds[idx]
-
-        label = query_target['labels'].numpy()[0]
-
+        # if query_target['labels'].numel() == 0:
+        #     # ラベルが空の場合の処理
+        #     # 例: デフォルトのラベルを設定する、エラーをログに記録する、など
+        #     print("Warning: No labels found for index:", idx)
+        #     # 必要に応じてデフォルト値を設定
+        #     query_target['labels'] = torch.tensor([20])
+        # print(f'{query_target=}')
+        # print(query_target['labels'].numpy())
+        # print(f'{idx=}')
+        # print(f'{query_image=}')
+        # print(query_target['labels'].numpy()[0])
+        # print('########################################')
+        try:
+            label = query_target['labels'].numpy()[0]
+        except: 
+            print(f'{query_target=}')
+            print(query_target['labels'].numpy())
+            print(f'{idx=}')
+            print(f'{query_image=}')
+            print('########################################')
 
         support_image, support_target = self.train_ds[idx]
         support_label = support_target['labels'].numpy()[0]

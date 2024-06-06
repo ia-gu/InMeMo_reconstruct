@@ -45,7 +45,7 @@ t.append(T.Normalize(model.pretrained_cfg['mean'], model.pretrained_cfg['std']))
 center_crop = T.Compose(t)
 
 
-save_dir = f"./pascal-5i/VOC2012/{feature_name}_{split}_all_detection"
+save_dir = f"./pascal-5i/mvtec/{feature_name}_{split}_all_detection"
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)
 # else:
@@ -53,8 +53,8 @@ if not os.path.exists(save_dir):
 #     sys.exit()
 
 
-meta_root = f"./pascal-5i/VOC2012/ImageSets/Main/{split}"
-image_root = "./pascal-5i/VOC2012/JPEGImages"
+meta_root = f"./pascal-5i/mvtec/ImageSets/Main/{split}"
+image_root = "./pascal-5i/mvtec/JPEGImages"
 sys.stdout.flush()
 with open(meta_root + '.txt') as f:
     examples = f.readlines()

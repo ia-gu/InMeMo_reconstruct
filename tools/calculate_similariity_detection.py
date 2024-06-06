@@ -14,8 +14,8 @@ target_split = sys.argv[3]
 print(f"Processing {features_name} ...")
 sys.stdout.flush()
 
-source_features_dir = f"./pascal-5i/VOC2012/{features_name}_{source_split}_all_detection"
-target_features_dir = f"./pascal-5i/VOC2012/{features_name}_{target_split}_all_detection"
+source_features_dir = f"./pascal-5i/mvtec/{features_name}_{source_split}_all_detection"
+target_features_dir = f"./pascal-5i/mvtec/{features_name}_{target_split}_all_detection"
 
 print(source_features_dir)
 print(target_features_dir)
@@ -65,7 +65,7 @@ for _, (cur_example, cur_similarity) in enumerate(zip(source_examples, similarit
     if source_split == 'val' and target_split == 'train':
         # select top50 prompt pairs for each sample.
         if img_name not in similarity_idx_dict:
-            similarity_idx_dict[img_name] = cur_similar_name[:50]
+            similarity_idx_dict[img_name] = cur_similar_name[1:51]
     elif source_split == 'train' and target_split == 'train':
         # select top50 prompt pairs for each sample.
         if img_name not in similarity_idx_dict:

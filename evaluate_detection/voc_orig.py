@@ -17,7 +17,7 @@ from torchvision.datasets.utils import download_url
 CLASS_NAMES = (
     "aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat",
     "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person",
-    "pottedplant", "sheep", "sofa", "train", "tvmonitor"
+    "pottedplant", "sheep", "sofa", "train", "tvmonitor", "flaw"
 )
 
 DATASET_YEAR_DICT = {
@@ -63,6 +63,12 @@ DATASET_YEAR_DICT = {
         'filename': 'VOCtest_06-Nov-2007.tar',
         'md5': 'b6e924de25625d8de591ea690078ad9f',
         'base_dir': os.path.join('VOCdevkit', 'VOC2007')
+    },
+    'IAM': {
+        'base_dir': 'IAM'
+    },
+    'mvtec': {
+        'base_dir': 'mvtec'
     }
 }
 
@@ -117,8 +123,8 @@ class VOCDetection4Val(VisionDataset):
                  target_transform=None,
                  transforms=None,
                  no_cats=False,
-                 keep_single_objs_only=1,
-                 filter_by_mask_size=1):
+                 keep_single_objs_only=False,
+                 filter_by_mask_size=False):
         super(VOCDetection4Val, self).__init__(root, transforms, transform, target_transform)
         self.images = []
         self.annotations = []
@@ -262,6 +268,8 @@ class VOCDetection4Val(VisionDataset):
         """
         # print("self.images[index]: ", self.images[index])
         index = idx
+        # print(f'{idx=}')
+        # print(len(self.images))
         img = Image.open(self.images[index]).convert('RGB')
         target, instances = self.load_instances(self.imgids[index])
         # keep instance with a same label
@@ -332,8 +340,8 @@ class VOCDetection4Train(VisionDataset):
                  target_transform=None,
                  transforms=None,
                  no_cats=False,
-                 keep_single_objs_only=1,
-                 filter_by_mask_size=1):
+                 keep_single_objs_only=False,
+                 filter_by_mask_size=False):
         super(VOCDetection4Train, self).__init__(root, transforms, transform, target_transform)
         self.images = []
         self.annotations = []
@@ -371,6 +379,7 @@ class VOCDetection4Train(VisionDataset):
             self.image_set.extend(file_names)
 
             self.images.extend([os.path.join(image_dir, x + ".jpg") for x in file_names])
+            # print(f'1111111111111{len(self.images)=}')
             self.annotations.extend([os.path.join(annotation_dir, x + ".xml") for x in file_names])
 
             self.imgids.extend(self.convert_image_id(x, to_integer=True) for x in file_names)
@@ -383,6 +392,7 @@ class VOCDetection4Train(VisionDataset):
                 if len(instances) == 1:
                     single_indices.append(index)
             self.images = [self.images[i] for i in range(len(self.images)) if i in single_indices]
+            # print(f'222222222{len(self.images)=}')
             self.annotations = [self.annotations[i] for i in range(len(self.annotations)) if i in single_indices]
             self.imgids = [self.imgids[i] for i in range(len(self.imgids)) if i in single_indices]
 
@@ -397,6 +407,7 @@ class VOCDetection4Train(VisionDataset):
                 if frac < 0.2:
                     valid_mask_size_indices.append(index)
             self.images = [self.images[i] for i in range(len(self.images)) if i in valid_mask_size_indices]
+            # print(f'333333333333333{len(self.images)=}')
             self.annotations = [self.annotations[i] for i in range(len(self.annotations)) if i in valid_mask_size_indices]
             self.imgids = [self.imgids[i] for i in range(len(self.imgids)) if i in valid_mask_size_indices]
 
@@ -474,6 +485,8 @@ class VOCDetection4Train(VisionDataset):
         # index, label = self.val_flattened_set[idx]
         # print("self.images[index]: ", self.images[index])
         index = idx
+        # print(f'{idx=}')
+        # print(len(self.images))
         img = Image.open(self.images[index]).convert('RGB')
         target, instances = self.load_instances(self.imgids[index])
         # keep instance with a same label

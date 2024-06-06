@@ -26,6 +26,7 @@ def get_args():
     parser.add_argument('--device', default='cuda:0',
                         help='device to use for training / testing')
     parser.add_argument('--base_dir', default='./pascal-5i', help='pascal base dir')
+    parser.add_argument('--years', default=2012)  # TODO: check the base dir path.
     parser.add_argument('--seed', default=0, type=int)
     parser.add_argument('--t', default=[0, 0, 0], type=float, nargs='+')
     parser.add_argument('--task', default='detection', choices=['segmentation', 'detection'])
@@ -68,7 +69,7 @@ def test_for_generate_results(args):
 
     val_dataset = {
         'pascal_det': CanvasDataset4Val
-    }[args.dataset_type](args.base_dir, fold=args.fold, split=args.split, image_transform=image_transform,
+    }[args.dataset_type](args.base_dir, years=[str(args.years)], fold=args.fold, split=args.split, image_transform=image_transform,
                          mask_transform=mask_transform,
                          flipped_order=args.flip, purple=args.purple, random=args.random, cluster=args.cluster,
                          feature_name=args.feature_name, percentage=args.percentage, seed=args.seed, mode=args.mode,

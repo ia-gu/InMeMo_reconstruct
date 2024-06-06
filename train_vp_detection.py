@@ -27,6 +27,7 @@ def get_args():
     parser.add_argument('--device', default='cuda:0',
                         help='device to use for training / testing')
     parser.add_argument('--base_dir', default='./pascal-5i', help='pascal base dir')  # TODO: check the base dir path.
+    parser.add_argument('--years', default=2012)  # TODO: check the base dir path.
     parser.add_argument('--seed', default=0, type=int)
     parser.add_argument('--t', default=[0, 0, 0], type=float, nargs='+')
     parser.add_argument('--task', default='detection', choices=['segmentation', 'detection'])
@@ -77,27 +78,27 @@ def train(args):
 
     train_dataset = {
         'pascal_det': CanvasDataset4Train
-    }[args.dataset_type](args.base_dir, fold=args.fold, split=args.split, image_transform=image_transform,
+    }[args.dataset_type](args.base_dir, years=[str(args.years)], fold=args.fold, split=args.split, image_transform=image_transform,
                          mask_transform=mask_transform, flipped_order=args.flip, purple=args.purple,
                          random=args.random, cluster=args.cluster, feature_name=args.feature_name,
                          percentage=args.percentage, seed=args.seed, mode=args.mode, arr=args.arr)
 
-    val_dataset = {
-        'pascal_det': CanvasDataset4Val
-    }[args.dataset_type](args.base_dir, fold=args.fold, split=args.split, image_transform=image_transform,
-                         mask_transform=mask_transform,
-                         flipped_order=args.flip, purple=args.purple, random=args.random, cluster=args.cluster,
-                         feature_name=args.feature_name, percentage=args.percentage, seed=args.seed, mode=args.mode,
-                         arr=args.arr)
+    # val_dataset = {
+    #     'pascal_det': CanvasDataset4Val
+    # }[args.dataset_type](args.base_dir, fold=args.fold, split=args.split, image_transform=image_transform,
+    #                      mask_transform=mask_transform,
+    #                      flipped_order=args.flip, purple=args.purple, random=args.random, cluster=args.cluster,
+    #                      feature_name=args.feature_name, percentage=args.percentage, seed=args.seed, mode=args.mode,
+    #                      arr=args.arr)
 
-    print('length of val dataset: ', len(val_dataset))
+    # print('length of val dataset: ', len(val_dataset))
 
     dataloaders = {}
-    dataloaders['val'] = DataLoader(val_dataset, batch_size=args.batch_size // 2, shuffle=False, num_workers=4)
+    # dataloaders['val'] = DataLoader(val_dataset, batch_size=args.batch_size // 2, shuffle=False, num_workers=4)
     dataloaders['train'] = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
 
     print('train datalaoder: ', len(dataloaders['train']))
-    print('val datalaoder: ', len(dataloaders['val']))
+    # print('val datalaoder: ', len(dataloaders['val']))
 
     print("load data over")
 
@@ -179,81 +180,88 @@ def train(args):
         print('epoch: {}, loss: {:.2f}'.format(epoch, average_epoch_loss))
         print('min loss: {:.2f}'.format(min_loss))
 
-        if epoch % 1 == 0:
-            examples_save_path = eg_save_path + f'/{setting}_{epoch}/'
-            print("start_val round" + str(epoch // 1))
-            VP.eval()
-            os.makedirs(examples_save_path, exist_ok=True)
-            with open(os.path.join(examples_save_path, 'log.txt'), 'w') as log:
-                log.write(str(args) + '\n')
+        # if epoch % 1 == 0:
+        #     examples_save_path = eg_save_path + f'/{setting}_{epoch}/'
+        #     print("start_val round" + str(epoch // 1))
+        #     VP.eval()
+        #     os.makedirs(examples_save_path, exist_ok=True)
+        #     with open(os.path.join(examples_save_path, 'log.txt'), 'w') as log:
+        #         log.write(str(args) + '\n')
 
-            image_number = 0
-            # Validation phase
-            for i, data in enumerate(tqdm(dataloaders["val"])):
-                len_dataloader = len(dataloaders["val"])
-                support_img, support_mask, query_img, query_mask, grid_stack = \
-                    data['support_img'], data['support_mask'], data['query_img'], data['query_mask'], data['grid_stack']
-                support_img = support_img.to(args.device, dtype=torch.float32)
-                support_mask = support_mask.to(args.device, dtype=torch.float32)
-                query_img = query_img.to(args.device, dtype=torch.float32)
-                query_mask = query_mask.to(args.device, dtype=torch.float32)
-                grid_stack = grid_stack.to(args.device, dtype=torch.float32)
+        #     image_number = 0
+        #     # Validation phase
+        #     for i, data in enumerate(tqdm(dataloaders["val"])):
+        #         len_dataloader = len(dataloaders["val"])
+        #         support_img, support_mask, query_img, query_mask, grid_stack = \
+        #             data['support_img'], data['support_mask'], data['query_img'], data['query_mask'], data['grid_stack']
+        #         support_img = support_img.to(args.device, dtype=torch.float32)
+        #         support_mask = support_mask.to(args.device, dtype=torch.float32)
+        #         query_img = query_img.to(args.device, dtype=torch.float32)
+        #         query_mask = query_mask.to(args.device, dtype=torch.float32)
+        #         grid_stack = grid_stack.to(args.device, dtype=torch.float32)
 
-                _, canvas_pred, canvas_label = VP(support_img, support_mask, query_img, query_mask, grid_stack)
+        #         _, canvas_pred, canvas_label = VP(support_img, support_mask, query_img, query_mask, grid_stack)
 
-                if args.dataset_type != 'pascal_det':
-                    # convert to imagenet distribution.
-                    imagenet_mean = torch.tensor([0.485, 0.456, 0.406]).to(args.device)
-                    imagenet_std = torch.tensor([0.229, 0.224, 0.225]).to(args.device)
-                    canvas_pred = (canvas_pred - imagenet_mean[:, None, None]) / imagenet_std[:, None, None]
-                    canvas_label = (canvas_label - imagenet_mean[:, None, None]) / imagenet_std[:, None, None]
+        #         if args.dataset_type != 'pascal_det':
+        #             # convert to imagenet distribution.
+        #             imagenet_mean = torch.tensor([0.485, 0.456, 0.406]).to(args.device)
+        #             imagenet_std = torch.tensor([0.229, 0.224, 0.225]).to(args.device)
+        #             canvas_pred = (canvas_pred - imagenet_mean[:, None, None]) / imagenet_std[:, None, None]
+        #             canvas_label = (canvas_label - imagenet_mean[:, None, None]) / imagenet_std[:, None, None]
 
-                original_image_list, generated_result_list = _generate_result_for_canvas(args, vqgan.to(args.device),
-                                                                                         canvas_pred, canvas_label,
-                                                                                         args.arr)
-                for index in range(len(original_image_list)):
+        #         original_image_list, generated_result_list = _generate_result_for_canvas(args, vqgan.to(args.device),
+        #                                                                                  canvas_pred, canvas_label,
+        #                                                                                  args.arr)
+        #         for index in range(len(original_image_list)):
 
-                    sub_image = generated_result_list[index][113:, 113:]
-                    sub_image = round_image(sub_image, [WHITE, BLACK], t=args.t)
-                    generated_result_list[index][113:, 113:] = sub_image
+        #             sub_image = generated_result_list[index][113:, 113:]
+        #             sub_image = round_image(sub_image, [WHITE, BLACK], t=args.t)
+        #             generated_result_list[index][113:, 113:] = sub_image
 
-                    original_image = round_image(original_image_list[index], [WHITE, BLACK])
-                    generated_result = generated_result_list[index]
-                    if args.task == 'detection':
-                        generated_result = to_rectangle(generated_result)
-                    if args.save_examples:
-                        Image.fromarray((generated_result.cpu().numpy()).astype(np.uint8)).save(
-                            examples_save_path + f'generated_image_{image_number}.png')
+        #             original_image = round_image(original_image_list[index], [WHITE, BLACK])
+        #             generated_result = generated_result_list[index]
+        #             if args.task == 'detection':
+        #                 generated_result = to_rectangle(generated_result)
+        #             if args.save_examples:
+        #                 Image.fromarray((generated_result.cpu().numpy()).astype(np.uint8)).save(
+        #                     examples_save_path + f'generated_image_{image_number}.png')
 
-                    current_metric = calculate_metric(args, original_image, generated_result, fg_color=WHITE, bg_color=BLACK)
-                    with open(os.path.join(examples_save_path, 'log.txt'), 'a') as log:
-                        log.write(str(image_number) + '\t' + str(current_metric) + '\n')
-                    image_number += 1
+        #             current_metric = calculate_metric(args, original_image, generated_result, fg_color=WHITE, bg_color=BLACK)
+        #             with open(os.path.join(examples_save_path, 'log.txt'), 'a') as log:
+        #                 log.write(str(image_number) + '\t' + str(current_metric) + '\n')
+        #             image_number += 1
 
-                    for i, j in current_metric.items():
-                        eval_dict[i] += (j / len(val_dataset))
+        #             for i, j in current_metric.items():
+        #                 eval_dict[i] += (j / len(val_dataset))
 
-            print('val metric: {}'.format(eval_dict))
-            with open(os.path.join(examples_save_path, 'log.txt'), 'a') as log:
-                log.write('all\t' + str(eval_dict) + '\n')
+        #     print('val metric: {}'.format(eval_dict))
+        #     with open(os.path.join(examples_save_path, 'log.txt'), 'a') as log:
+        #         log.write('all\t' + str(eval_dict) + '\n')
 
-            # Save CKPT
-            if args.vp_model == 'pad':
-                state_dict = {
-                    "visual_prompt_dict": VP.PadPrompter.state_dict(),
-                    "optimizer_dict": optimizer.state_dict(),
-                    "epoch": epoch,
-                    "best_iou": best_iou,
-                }
-            if eval_dict['iou'] > best_iou:
-                best_iou = eval_dict['iou']
-                state_dict['best_iou'] = best_iou
-                torch.save(state_dict, os.path.join(model_save_path, 'best.pth'))
-            torch.save(state_dict, os.path.join(model_save_path, 'ckpt.pth'))
-            print('best iou: ', best_iou)
-            val_iou_list.append(eval_dict['iou'])
-            print('lr list: ', lr_list)
-            print('val iou list: ', val_iou_list)
+            # # Save CKPT
+            # if args.vp_model == 'pad':
+            #     state_dict = {
+            #         "visual_prompt_dict": VP.PadPrompter.state_dict(),
+            #         "optimizer_dict": optimizer.state_dict(),
+            #         "epoch": epoch,
+            #         "best_iou": best_iou,
+            #     }
+            # if eval_dict['iou'] > best_iou:
+            #     best_iou = eval_dict['iou']
+            #     state_dict['best_iou'] = best_iou
+            #     torch.save(state_dict, os.path.join(model_save_path, 'best.pth'))
+            # torch.save(state_dict, os.path.join(model_save_path, 'ckpt.pth'))
+            # print('best iou: ', best_iou)
+            # val_iou_list.append(eval_dict['iou'])
+            # print('lr list: ', lr_list)
+            # print('val iou list: ', val_iou_list)
+    state_dict = {
+    "visual_prompt_dict": VP.PadPrompter.state_dict(),
+    "optimizer_dict": optimizer.state_dict(),
+    "epoch": epoch,
+    "best_iou": best_iou,
+    }
+    torch.save(state_dict, os.path.join(model_save_path, 'ckpt.pth'))
 
 
 if __name__ == '__main__':
